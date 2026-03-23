@@ -1,0 +1,10 @@
+{
+  "name": "hydra-theme-studio-html",
+  "private": true,
+  "version": "2.0.0",
+  "scripts": {
+    "dev": "python3 -m http.server 4173",
+    "build": "mkdir -p dist && cp index.html dist/index.html",
+    "preview": "python3 -m http.server 4173 -d dist"
+  }
+}

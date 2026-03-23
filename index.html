@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydra Theme Studio — HTML Edition</title>
+    <style>
+      :root {
+        --bg: #08111f;
+        --panel: rgba(9, 15, 29, 0.86);
+        --panel-2: rgba(17, 28, 45, 0.82);
+        --text: #f8fafc;
+        --muted: #9fb2cc;
+        --primary: #22d3ee;
+        --radius: 20px;
+        --shadow: 0 20px 60px rgba(2, 6, 23, 0.35);
+        --border: rgba(148, 163, 184, 0.16);
+        --editor-bg: linear-gradient(180deg, #04101d 0%, #091727 100%);
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; font-family: Inter, Arial, sans-serif; background: radial-gradient(circle at top, rgba(34, 211, 238, 0.14), transparent 30%), #020617; color: var(--text); }
+      button, input, select, textarea { font: inherit; }
+      body.light { --bg: #eef6ff; --panel: rgba(255,255,255,0.88); --panel-2: rgba(255,255,255,0.94); --text: #0f172a; --muted: #475569; --primary: #2563eb; --shadow: 0 20px 60px rgba(15,23,42,0.14); --border: rgba(15, 23, 42, 0.08); --editor-bg: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%); background: linear-gradient(180deg, #f8fbff 0%, #dcecff 100%); }
+
+      .app { max-width: 1600px; margin: 0 auto; padding: 24px; display: grid; gap: 24px; }
+      .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 28px; box-shadow: var(--shadow); backdrop-filter: blur(16px); }
+      .hero { padding: 24px; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: end; }
+      .hero h1 { margin: 0 0 6px; font-size: clamp(1.8rem, 3vw, 3rem); }
+      .hero p { margin: 0; color: var(--muted); max-width: 720px; }
+      .hero-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; min-width: min(100%, 720px); }
+      .field, .range-card, .preset, .tab-btn, .mini-card { border: 1px solid var(--border); background: var(--panel-2); border-radius: 20px; }
+      .field { padding: 14px; display: grid; gap: 10px; }
+      .field label, .section-title, .range-card strong { font-size: 0.95rem; font-weight: 700; }
+      .field small, .helper, .muted { color: var(--muted); font-size: 0.85rem; }
+      .field input[type="text"], .field input[type="url"], .field select, .field textarea { width: 100%; border-radius: 14px; border: 1px solid var(--border); background: rgba(15,23,42,0.18); color: inherit; padding: 12px 14px; }
+      body.light .field input[type="text"], body.light .field input[type="url"], body.light .field select, body.light .field textarea { background: rgba(255,255,255,0.8); }
+      input[type="range"] { width: 100%; accent-color: var(--primary); }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+      .btn { border: 0; cursor: pointer; border-radius: 16px; padding: 13px 18px; font-weight: 700; transition: transform .16s ease, opacity .16s ease, background .16s ease; }
+      .btn:hover { transform: translateY(-1px); }
+      .btn.primary { background: var(--primary); color: #020617; }
+      .btn.secondary { background: rgba(148,163,184,0.14); color: inherit; border: 1px solid var(--border); }
+      .layout { display: grid; grid-template-columns: minmax(420px, 1fr) minmax(420px, 1fr); gap: 24px; }
+      .controls, .preview-panel, .output-panel, .presets { padding: 22px; }
+      .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+      .tab-btn { color: inherit; background: transparent; padding: 12px 14px; cursor: pointer; }
+      .tab-btn.active { background: rgba(34, 211, 238, 0.12); border-color: rgba(34, 211, 238, 0.4); }
+      .tab-content { display: none; gap: 14px; }
+      .tab-content.active { display: grid; }
+      .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .color-row { display: flex; gap: 12px; align-items: center; }
+      .color-row input[type="color"] { inline-size: 58px; block-size: 48px; border: 0; background: transparent; }
+      .range-card { padding: 14px; }
+      .preset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+      .preset { padding: 16px; cursor: pointer; }
+      .preset:hover { border-color: rgba(34, 211, 238, 0.4); }
+      .preview-shell { background: var(--bg); padding: 14px; border-radius: 30px; border: 1px solid var(--border); overflow: hidden; }
+      .header, .sidebar, .container__content, .bottom-panel, .button, .toast { transition: all .14s ease; }
+      .hydra { display: grid; gap: 14px; color: var(--hydra-text, #f8fafc); font-size: var(--hydra-font-size, 15px); line-height: var(--hydra-line-height, 1.45); font-weight: var(--hydra-font-weight, 500); }
+      .header, .sidebar, .container__content, .bottom-panel { backdrop-filter: blur(var(--hydra-blur, 18px)); border-radius: var(--hydra-radius, 18px); box-shadow: 0 18px 48px rgba(2,6,23,.32); border: 1px solid rgba(255,255,255,.05); }
+      .header { background: var(--hydra-header, rgba(16,24,38,.88)); padding: 18px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+      .hydra-body { display: grid; gap: 14px; grid-template-columns: 230px 1fr; }
+      .sidebar { background: var(--hydra-sidebar, rgba(13,22,35,.86)); padding: 14px; display: grid; gap: 12px; }
+      .container__content { background: var(--hydra-content, rgba(17,28,45,.82)); padding: 16px; }
+      .cards { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .game-card { overflow: hidden; border-radius: var(--hydra-radius, 18px); border: 1px solid rgba(255,255,255,.06); background: rgba(2,6,23,.24); }
+      .game-cover { height: 120px; background: linear-gradient(135deg, var(--hydra-primary, #22d3ee), rgba(15,23,42,.2)); }
+      .game-info { padding: 14px; display: grid; gap: 8px; }
+      .button { background: var(--hydra-primary, #22d3ee); color: var(--hydra-text-on-button, #08111f); border-radius: calc(var(--hydra-radius, 18px) - 4px); padding: 12px 14px; border: none; text-align: left; font-weight: 700; cursor: pointer; }
+      .toast { background: rgba(34,211,238,.18); border-radius: calc(var(--hydra-radius, 18px) - 2px); padding: 10px 12px; font-size: .78rem; }
+      .bottom-panel { background: var(--hydra-bottom, rgba(14,23,38,.88)); padding: 16px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+      .output-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+      .output-panel textarea { width: 100%; min-height: 340px; margin-top: 16px; border-radius: 24px; border: 1px solid var(--border); background: rgba(2,6,23,.86); color: #e2e8f0; padding: 18px; }
+      .toast-bar { position: fixed; top: 20px; right: 20px; display: grid; gap: 10px; z-index: 20; }
+      .toast-item { background: rgba(15,23,42,.96); color: #f8fafc; padding: 12px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); }
+      .hidden { display: none !important; }
+
+      @media (max-width: 1100px) {
+        .layout { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 820px) {
+        .hydra-body { grid-template-columns: 1fr; }
+        .cards, .grid-2 { grid-template-columns: 1fr; }
+        .header { flex-direction: column; align-items: stretch; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <section class="panel hero">
+        <div>
+          <div class="muted" style="letter-spacing:.28em;text-transform:uppercase;font-weight:800;margin-bottom:10px;">Hydra Theme Studio — HTML Edition</div>
+          <h1>Editor visual avançado para temas do Hydra Launcher</h1>
+          <p>Versão refeita em HTML, CSS e JavaScript puro, com preview em tempo real, presets, exportação de CSS/JSON, upload de GIF/imagem e persistência automática.</p>
+        </div>
+        <div class="hero-grid">
+          <div class="field" title="Define o nome exibido no comentário do CSS gerado.">
+            <label for="themeName">Nome do Tema</label>
+            <input id="themeName" type="text" placeholder="Ex.: Neon Hydra" />
+          </div>
+          <div class="field" title="Seu nome de autor dentro do CSS exportado.">
+            <label for="nickname">Seu Nickname</label>
+            <input id="nickname" type="text" placeholder="Ex.: SeuNick" />
+          </div>
+          <div class="field" title="Alterna o modo claro/escuro da interface do editor.">
+            <label for="editorMode">Modo da interface</label>
+            <select id="editorMode">
+              <option value="dark">Escuro</option>
+              <option value="light">Claro</option>
+            </select>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="copyCssBtn">COPIAR CSS</button>
+            <button class="btn secondary" id="downloadCssBtn">Baixar tema.css</button>
+            <button class="btn secondary" id="downloadJsonBtn">Exportar JSON</button>
+            <button class="btn secondary" id="resetBtn">Resetar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel presets">
+        <div class="section-title" style="margin-bottom:14px;">10 presets prontos</div>
+        <div class="preset-grid" id="presetGrid"></div>
+      </section>
+
+      <section class="layout">
+        <section class="panel controls">
+          <div class="section-title">Controles do tema</div>
+          <p class="helper">Todas as abas têm explicações em português usando atributos nativos de tooltip.</p>
+          <div class="tabs" id="tabs"></div>
+
+          <div class="tab-content active" data-tab="cores">
+            <div class="grid-2" id="colorControls"></div>
+            <div class="grid-2" id="opacityControls"></div>
+          </div>
+
+          <div class="tab-content" data-tab="tipografia">
+            <div class="field" title="Escolha a fonte base do launcher.">
+              <label for="fontFamily">Fonte base</label>
+              <select id="fontFamily"></select>
+              <small id="fontPreview">Preview tipográfico do Hydra Theme Studio</small>
+            </div>
+            <div class="grid-2" id="typeRanges"></div>
+          </div>
+
+          <div class="tab-content" data-tab="efeitos">
+            <div class="grid-2" id="effectRanges"></div>
+            <div class="field" title="Cor usada como base para profundidade e neon.">
+              <label for="shadowColor">Cor da sombra</label>
+              <div class="color-row">
+                <input id="shadowColor" type="color" />
+                <input id="shadowColorText" type="text" />
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content" data-tab="fundo">
+            <div class="field" title="Cole uma URL externa de imagem ou GIF.">
+              <label for="backgroundSource">URL do fundo especial</label>
+              <input id="backgroundSource" type="url" placeholder="https://...gif" />
+            </div>
+            <div class="field" title="Carrega imagem/GIF do computador e converte para base64.">
+              <label for="backgroundFile">Carregar do computador</label>
+              <input id="backgroundFile" type="file" accept="image/*,.gif" />
+            </div>
+            <div class="grid-2">
+              <div class="field"><label for="backgroundTarget">Aplicar em qual área</label><select id="backgroundTarget"></select></div>
+              <div class="field"><label for="backgroundSize">Background size</label><select id="backgroundSize"></select></div>
+              <div class="field"><label for="backgroundPosition">Posição</label><select id="backgroundPosition"></select></div>
+              <div class="field"><label for="backgroundRepeat">Repetição</label><select id="backgroundRepeat"></select></div>
+            </div>
+            <div class="field" title="Mantém a animação natural do GIF como background.">
+              <label><input id="preserveAnimation" type="checkbox" checked /> Manter animação do GIF</label>
+            </div>
+          </div>
+
+          <div class="tab-content" data-tab="css">
+            <div class="field" title="Tudo digitado aqui é concatenado ao final do CSS gerado.">
+              <label for="advancedCss">CSS avançado</label>
+              <textarea id="advancedCss" rows="16" spellcheck="false"></textarea>
+              <small>Atualização com debounce de 250ms.</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel preview-panel">
+          <div style="display:flex;justify-content:space-between;gap:16px;align-items:start;flex-wrap:wrap;">
+            <div>
+              <div class="section-title">Visualização em tempo real</div>
+              <p class="helper">Réplica em HTML das áreas do Hydra usando as classes exigidas.</p>
+            </div>
+            <div class="mini-card" style="padding:10px 12px;">Refresh estimado &lt; 50ms</div>
+          </div>
+          <div class="preview-shell" id="previewShell">
+            <div class="hydra" id="hydraPreview">
+              <div class="header" id="previewHeader">
+                <div>
+                  <strong>Hydra Launcher</strong>
+                  <div class="muted" id="previewThemeName">Tema: Hydra Pulse</div>
+                </div>
+                <div class="toast">Tema atualizado ao vivo</div>
+              </div>
+              <div class="hydra-body">
+                <aside class="sidebar" id="previewSidebar">
+                  <button class="button">Biblioteca</button>
+                  <button class="button">Loja</button>
+                  <button class="button">Downloads</button>
+                  <button class="button">Favoritos</button>
+                  <button class="button">Configurações</button>
+                </aside>
+                <div style="display:grid;gap:14px;">
+                  <main class="container__content" id="previewContent">
+                    <div style="display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap;margin-bottom:14px;">
+                      <div>
+                        <strong>Destaques do dia</strong>
+                        <div class="muted">Grade de cards para validar contraste, blur e botões.</div>
+                      </div>
+                      <div class="toast">Preview fiel do launcher</div>
+                    </div>
+                    <div class="cards" id="gameCards"></div>
+                  </main>
+                  <div class="bottom-panel" id="previewBottom">
+                    <div>
+                      <strong>Bottom panel</strong>
+                      <div class="muted">Instalações, ações rápidas e CTA de tema.</div>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                      <button class="button">Instalar tema</button>
+                      <button class="btn secondary" style="padding:12px 14px;">Compartilhar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="section-title">Saída do CSS</div>
+        <p class="helper">O CSS sempre começa com comentário profissional, pronto para uso no Hydra.</p>
+        <div class="output-actions">
+          <button class="btn primary" id="copyCssBtnBottom">COPIAR CSS</button>
+          <button class="btn secondary" id="downloadCssBtnBottom">Baixar tema.css</button>
+          <button class="btn secondary" id="copyJsonBtn">Copiar JSON</button>
+        </div>
+        <textarea id="cssOutput" readonly></textarea>
+      </section>
+    </div>
+
+    <div class="toast-bar" id="toastBar"></div>
+
+    <script>
+      const fonts = ['Inter','Poppins','Roboto','Montserrat','Nunito','Lato','Open Sans','Raleway','Ubuntu','Fira Sans','Work Sans','Merriweather','Space Grotesk','Manrope','DM Sans'];
+      const games = [
+        ['Hades II', 'Roguelike'],
+        ['Elden Ring', 'Action RPG'],
+        ['Balatro', 'Deckbuilder'],
+        ['Cyberpunk 2077', 'Open World'],
+        ['Stardew Valley', 'Cozy'],
+        ['Helldivers 2', 'Co-op']
+      ];
+      const presetList = [
+        { id: 'neon', label: 'Neon', description: 'Roxo elétrico com brilho intenso.', patch: { themeName: 'Neon Nights', colors: { primary: '#22d3ee', background: '#08111f', header: '#0a1020', sidebar: '#090f1d', content: '#0d1628', bottom: '#0c1220', text: '#f8fafc', textOnButton: '#04101d' } } },
+        { id: 'glass', label: 'Glass', description: 'Vidro translúcido com blur alto.', patch: { themeName: 'Glass Aura', opacity: { header: 62, sidebar: 58, content: 55, bottom: 62 }, effects: { blurIntensity: 28, shadowIntensity: 34, borderRadius: 22, shadowColor: '#020617' } } },
+        { id: 'dracula', label: 'Dracula', description: 'Escuro com rosa e roxo.', patch: { themeName: 'Dracula Hydra', colors: { primary: '#ff79c6', background: '#191a21', header: '#282a36', sidebar: '#20222c', content: '#2a2c39', bottom: '#282a36', text: '#f8f8f2', textOnButton: '#191a21' } } },
+        { id: 'sakura', label: 'Sakura', description: 'Rosa suave pastel.', patch: { themeName: 'Sakura Bloom', editorMode: 'light', colors: { primary: '#fb7185', background: '#fff1f2', header: '#ffe4e6', sidebar: '#ffe4e6', content: '#fff7f7', bottom: '#ffe4e6', text: '#4c0519', textOnButton: '#fff1f2' } } },
+        { id: 'retro', label: 'Retro', description: 'Visual terminal verde.', patch: { themeName: 'Retro Matrix', colors: { primary: '#22c55e', background: '#08100a', header: '#102114', sidebar: '#0b190f', content: '#122817', bottom: '#102114', text: '#dcfce7', textOnButton: '#052e16' } } },
+        { id: 'minimal', label: 'Minimal', description: 'Limpo, leve e neutro.', patch: { themeName: 'Minimal Slate', editorMode: 'light', colors: { primary: '#64748b', background: '#f8fafc', header: '#ffffff', sidebar: '#f1f5f9', content: '#ffffff', bottom: '#ffffff', text: '#0f172a', textOnButton: '#ffffff' }, effects: { blurIntensity: 6, shadowIntensity: 12, borderRadius: 16, shadowColor: '#94a3b8' } } },
+        { id: 'cyberpunk', label: 'Cyberpunk', description: 'Amarelo ácido e magenta.', patch: { themeName: 'Cyberpunk Pulse', colors: { primary: '#facc15', background: '#12031f', header: '#1f1230', sidebar: '#190d29', content: '#25153d', bottom: '#1f1230', text: '#fdf4ff', textOnButton: '#12031f' }, effects: { blurIntensity: 18, shadowIntensity: 40, borderRadius: 18, shadowColor: '#ff00ff' } } },
+        { id: 'pastel', label: 'Pastel', description: 'Tons suaves e legíveis.', patch: { themeName: 'Pastel Dream', editorMode: 'light', colors: { primary: '#60a5fa', background: '#f8fafc', header: '#e0f2fe', sidebar: '#dbeafe', content: '#eff6ff', bottom: '#e0f2fe', text: '#1e3a8a', textOnButton: '#eff6ff' } } },
+        { id: 'dark-default', label: 'Dark Default', description: 'Tema escuro equilibrado.', patch: { themeName: 'Dark Default', colors: { primary: '#6366f1', background: '#08111f', header: '#101826', sidebar: '#0d1623', content: '#111c2d', bottom: '#0e1726', text: '#f8fafc', textOnButton: '#f8fafc' } } },
+        { id: 'light-mode', label: 'Light Mode', description: 'Interface clara para showcases.', patch: { themeName: 'Hydra Light', editorMode: 'light', colors: { primary: '#2563eb', background: '#e2e8f0', header: '#f8fafc', sidebar: '#ffffff', content: '#ffffff', bottom: '#f8fafc', text: '#0f172a', textOnButton: '#ffffff' }, opacity: { header: 94, sidebar: 92, content: 96, bottom: 94 } } }
+      ];
+      const defaultTheme = {
+        themeName: 'Hydra Pulse',
+        nickname: 'SeuNick',
+        editorMode: 'dark',
+        colors: { primary: '#8b5cf6', background: '#08111f', header: '#101826', sidebar: '#0d1623', content: '#111c2d', bottom: '#0e1726', text: '#f8fafc', textOnButton: '#f8fafc' },
+        opacity: { header: 88, sidebar: 86, content: 82, bottom: 88 },
+        typography: { fontFamily: 'Inter', fontSize: 15, fontWeight: 500, lineHeight: 1.45 },
+        effects: { borderRadius: 18, shadowIntensity: 28, shadowColor: '#020617', blurIntensity: 18 },
+        background: { source: '', target: 'launcher', size: 'cover', position: 'center', repeat: 'no-repeat', preserveAnimation: true },
+        advancedCss: '.game-card:hover {\n  transform: translateY(-4px);\n}'
+      };
+
+      const storageKey = 'hydra-theme-studio-html';
+      const tabs = ['cores', 'tipografia', 'efeitos', 'fundo', 'css'];
+      let advancedCssTimer = null;
+      let state = loadState();
+      let debouncedAdvancedCss = state.advancedCss;
+
+      const refs = {
+        themeName: document.getElementById('themeName'),
+        nickname: document.getElementById('nickname'),
+        editorMode: document.getElementById('editorMode'),
+        cssOutput: document.getElementById('cssOutput'),
+        previewShell: document.getElementById('previewShell'),
+        previewThemeName: document.getElementById('previewThemeName'),
+        hydraPreview: document.getElementById('hydraPreview'),
+        previewHeader: document.getElementById('previewHeader'),
+        previewSidebar: document.getElementById('previewSidebar'),
+        previewContent: document.getElementById('previewContent'),
+        previewBottom: document.getElementById('previewBottom'),
+        fontFamily: document.getElementById('fontFamily'),
+        fontPreview: document.getElementById('fontPreview'),
+        shadowColor: document.getElementById('shadowColor'),
+        shadowColorText: document.getElementById('shadowColorText'),
+        backgroundSource: document.getElementById('backgroundSource'),
+        backgroundFile: document.getElementById('backgroundFile'),
+        backgroundTarget: document.getElementById('backgroundTarget'),
+        backgroundSize: document.getElementById('backgroundSize'),
+        backgroundPosition: document.getElementById('backgroundPosition'),
+        backgroundRepeat: document.getElementById('backgroundRepeat'),
+        preserveAnimation: document.getElementById('preserveAnimation'),
+        advancedCss: document.getElementById('advancedCss'),
+        toastBar: document.getElementById('toastBar')
+      };
+
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+          return saved ? mergeTheme(defaultTheme, saved) : structuredClone(defaultTheme);
+        } catch {
+          return structuredClone(defaultTheme);
+        }
+      }
+
+      function mergeTheme(base, patch) {
+        return {
+          ...base,
+          ...patch,
+          colors: { ...base.colors, ...(patch.colors || {}) },
+          opacity: { ...base.opacity, ...(patch.opacity || {}) },
+          typography: { ...base.typography, ...(patch.typography || {}) },
+          effects: { ...base.effects, ...(patch.effects || {}) },
+          background: { ...base.background, ...(patch.background || {}) }
+        };
+      }
+
+      function saveState() {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      }
+
+      function toast(message) {
+        const item = document.createElement('div');
+        item.className = 'toast-item';
+        item.textContent = message;
+        refs.toastBar.appendChild(item);
+        setTimeout(() => item.remove(), 2200);
+      }
+
+      function setupTabs() {
+        const tabsRoot = document.getElementById('tabs');
+        tabs.forEach((tab, index) => {
+          const button = document.createElement('button');
+          button.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+          button.textContent = ({ cores: 'Cores', tipografia: 'Tipografia', efeitos: 'Bordas & Efeitos', fundo: 'Fundo Especial', css: 'CSS Avançado' })[tab];
+          button.type = 'button';
+          button.onclick = () => {
+            document.querySelectorAll('.tab-btn').forEach((el) => el.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach((el) => el.classList.remove('active'));
+            button.classList.add('active');
+            document.querySelector(`.tab-content[data-tab="${tab}"]`).classList.add('active');
+          };
+          tabsRoot.appendChild(button);
+        });
+      }
+
+      function buildPresets() {
+        const grid = document.getElementById('presetGrid');
+        grid.innerHTML = '';
+        presetList.forEach((preset) => {
+          const button = document.createElement('button');
+          button.className = 'preset';
+          button.type = 'button';
+          button.title = preset.description;
+          button.innerHTML = `<strong>${preset.label}</strong><div class="muted" style="margin-top:6px;">${preset.description}</div>`;
+          button.onclick = () => {
+            state = mergeTheme(defaultTheme, preset.patch);
+            debouncedAdvancedCss = state.advancedCss;
+            syncForm();
+            render();
+            toast(`Preset ${preset.label} aplicado.`);
+          };
+          grid.appendChild(button);
+        });
+      }
+
+      function buildControls() {
+        const colorControls = document.getElementById('colorControls');
+        const opacityControls = document.getElementById('opacityControls');
+        const typeRanges = document.getElementById('typeRanges');
+        const effectRanges = document.getElementById('effectRanges');
+
+        const colorFields = [
+          ['primary', 'Cor primária'], ['background', 'Fundo global'], ['header', 'Header'], ['sidebar', 'Sidebar'],
+          ['content', 'Content'], ['bottom', 'Bottom panel'], ['text', 'Texto principal'], ['textOnButton', 'Texto do botão']
+        ];
+        colorFields.forEach(([key, label]) => {
+          const wrap = document.createElement('div');
+          wrap.className = 'field';
+          wrap.title = `Ajusta ${label.toLowerCase()} do tema.`;
+          wrap.innerHTML = `<label>${label}</label><div class="color-row"><input type="color" data-color="${key}"><input type="text" data-color-text="${key}"></div>`;
+          colorControls.appendChild(wrap);
+        });
+
+        [['header', 'Opacidade do header'], ['sidebar', 'Opacidade da sidebar'], ['content', 'Opacidade do conteúdo'], ['bottom', 'Opacidade do bottom panel']].forEach(([key, label]) => {
+          const wrap = document.createElement('div');
+          wrap.className = 'range-card';
+          wrap.title = 'Ajusta a transparência do painel para efeito glass.';
+          wrap.innerHTML = `<strong>${label}</strong><div class="muted" data-range-value="opacity.${key}"></div><input type="range" min="0" max="100" step="1" data-range="opacity.${key}">`;
+          opacityControls.appendChild(wrap);
+        });
+
+        [['fontSize', 'Tamanho base', 12, 22, 1, 'px'], ['fontWeight', 'Peso da fonte', 300, 800, 100, ''], ['lineHeight', 'Line height', 1, 2, 0.05, '']].forEach(([key, label, min, max, step, suffix]) => {
+          const wrap = document.createElement('div');
+          wrap.className = 'range-card';
+          wrap.title = `Ajusta ${label.toLowerCase()} do launcher.`;
+          wrap.innerHTML = `<strong>${label}</strong><div class="muted" data-range-value="typography.${key}" data-suffix="${suffix}"></div><input type="range" min="${min}" max="${max}" step="${step}" data-range="typography.${key}">`;
+          typeRanges.appendChild(wrap);
+        });
+
+        [['borderRadius', 'Border radius global', 0, 40, 1, 'px'], ['shadowIntensity', 'Intensidade da sombra', 0, 50, 1, '%'], ['blurIntensity', 'Intensidade do blur', 0, 40, 1, 'px']].forEach(([key, label, min, max, step, suffix]) => {
+          const wrap = document.createElement('div');
+          wrap.className = 'range-card';
+          wrap.title = `Ajusta ${label.toLowerCase()} do tema.`;
+          wrap.innerHTML = `<strong>${label}</strong><div class="muted" data-range-value="effects.${key}" data-suffix="${suffix}"></div><input type="range" min="${min}" max="${max}" step="${step}" data-range="effects.${key}">`;
+          effectRanges.appendChild(wrap);
+        });
+
+        fonts.forEach((font) => refs.fontFamily.insertAdjacentHTML('beforeend', `<option value="${font}">${font}</option>`));
+        [['none','Nenhum'],['header','Header'],['sidebar','Sidebar'],['content','Content'],['launcher','Todo o launcher']].forEach(([v,l]) => refs.backgroundTarget.insertAdjacentHTML('beforeend', `<option value="${v}">${l}</option>`));
+        [['cover','Cover'],['contain','Contain'],['auto','Auto']].forEach(([v,l]) => refs.backgroundSize.insertAdjacentHTML('beforeend', `<option value="${v}">${l}</option>`));
+        [['center','Centro'],['top','Topo'],['bottom','Base'],['left','Esquerda'],['right','Direita']].forEach(([v,l]) => refs.backgroundPosition.insertAdjacentHTML('beforeend', `<option value="${v}">${l}</option>`));
+        [['no-repeat','Não repetir'],['repeat','Repetir'],['repeat-x','Repetir X'],['repeat-y','Repetir Y']].forEach(([v,l]) => refs.backgroundRepeat.insertAdjacentHTML('beforeend', `<option value="${v}">${l}</option>`));
+      }
+
+      function buildGameCards() {
+        const root = document.getElementById('gameCards');
+        root.innerHTML = '';
+        games.forEach(([name, tag]) => {
+          const card = document.createElement('article');
+          card.className = 'game-card';
+          card.innerHTML = `<div class="game-cover"></div><div class="game-info"><strong>${name}</strong><span class="muted">${tag}</span><button class="button">Abrir jogo</button></div>`;
+          root.appendChild(card);
+        });
+      }
+
+      function wireEvents() {
+        refs.themeName.oninput = (e) => update('themeName', e.target.value);
+        refs.nickname.oninput = (e) => update('nickname', e.target.value);
+        refs.editorMode.onchange = (e) => update('editorMode', e.target.value);
+        refs.fontFamily.onchange = (e) => updateNested('typography', 'fontFamily', e.target.value);
+        refs.shadowColor.oninput = (e) => { updateNested('effects', 'shadowColor', e.target.value); refs.shadowColorText.value = e.target.value; };
+        refs.shadowColorText.oninput = (e) => updateNested('effects', 'shadowColor', e.target.value);
+        refs.backgroundSource.oninput = (e) => updateNested('background', 'source', e.target.value);
+        refs.backgroundTarget.onchange = (e) => updateNested('background', 'target', e.target.value);
+        refs.backgroundSize.onchange = (e) => updateNested('background', 'size', e.target.value);
+        refs.backgroundPosition.onchange = (e) => updateNested('background', 'position', e.target.value);
+        refs.backgroundRepeat.onchange = (e) => updateNested('background', 'repeat', e.target.value);
+        refs.preserveAnimation.onchange = (e) => updateNested('background', 'preserveAnimation', e.target.checked);
+        refs.advancedCss.oninput = (e) => {
+          update('advancedCss', e.target.value, false);
+          clearTimeout(advancedCssTimer);
+          advancedCssTimer = setTimeout(() => {
+            debouncedAdvancedCss = state.advancedCss;
+            render();
+          }, 250);
+        };
+        refs.backgroundFile.onchange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => updateNested('background', 'source', reader.result || '');
+          reader.readAsDataURL(file);
+        };
+        document.querySelectorAll('[data-color]').forEach((el) => {
+          el.oninput = (e) => updateNested('colors', e.target.dataset.color, e.target.value);
+        });
+        document.querySelectorAll('[data-color-text]').forEach((el) => {
+          el.oninput = (e) => updateNested('colors', e.target.dataset.colorText, e.target.value);
+        });
+        document.querySelectorAll('[data-range]').forEach((el) => {
+          el.oninput = (e) => {
+            const [section, key] = e.target.dataset.range.split('.');
+            updateNested(section, key, Number(e.target.value));
+          };
+        });
+
+        ['copyCssBtn','copyCssBtnBottom'].forEach((id) => document.getElementById(id).onclick = async () => {
+          await navigator.clipboard.writeText(generateCss());
+          toast('CSS copiado com sucesso.');
+        });
+        ['downloadCssBtn','downloadCssBtnBottom'].forEach((id) => document.getElementById(id).onclick = () => download('tema.css', generateCss(), 'text/css'));
+        document.getElementById('downloadJsonBtn').onclick = () => download('hydra-theme.json', JSON.stringify(state, null, 2), 'application/json');
+        document.getElementById('copyJsonBtn').onclick = async () => { await navigator.clipboard.writeText(JSON.stringify(state, null, 2)); toast('JSON copiado.'); };
+        document.getElementById('resetBtn').onclick = () => { state = structuredClone(defaultTheme); debouncedAdvancedCss = state.advancedCss; syncForm(); render(); toast('Tema restaurado para o padrão.'); };
+      }
+
+      function update(key, value, immediate = true) {
+        state[key] = value;
+        if (immediate) render();
+      }
+
+      function updateNested(section, key, value) {
+        state[section][key] = value;
+        syncForm();
+        render();
+      }
+
+      function syncForm() {
+        refs.themeName.value = state.themeName;
+        refs.nickname.value = state.nickname;
+        refs.editorMode.value = state.editorMode;
+        refs.fontFamily.value = state.typography.fontFamily;
+        refs.fontPreview.style.fontFamily = state.typography.fontFamily;
+        refs.shadowColor.value = state.effects.shadowColor;
+        refs.shadowColorText.value = state.effects.shadowColor;
+        refs.backgroundSource.value = state.background.source;
+        refs.backgroundTarget.value = state.background.target;
+        refs.backgroundSize.value = state.background.size;
+        refs.backgroundPosition.value = state.background.position;
+        refs.backgroundRepeat.value = state.background.repeat;
+        refs.preserveAnimation.checked = state.background.preserveAnimation;
+        refs.advancedCss.value = state.advancedCss;
+        document.querySelectorAll('[data-color]').forEach((el) => { el.value = state.colors[el.dataset.color]; });
+        document.querySelectorAll('[data-color-text]').forEach((el) => { el.value = state.colors[el.dataset.colorText]; });
+        document.querySelectorAll('[data-range]').forEach((el) => {
+          const [section, key] = el.dataset.range.split('.');
+          el.value = state[section][key];
+        });
+        document.querySelectorAll('[data-range-value]').forEach((el) => {
+          const [section, key] = el.dataset.rangeValue.split('.');
+          const suffix = el.dataset.suffix || (section === 'opacity' ? '%' : '');
+          el.textContent = `${state[section][key]}${suffix}`;
+        });
+      }
+
+      function alpha(hex, opacity) {
+        const clean = hex.replace('#', '');
+        const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
+        const int = parseInt(full, 16);
+        const r = (int >> 16) & 255;
+        const g = (int >> 8) & 255;
+        const b = int & 255;
+        return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+      }
+
+      function applyPreviewBackground() {
+        const areas = {
+          launcher: refs.previewShell,
+          header: refs.previewHeader,
+          sidebar: refs.previewSidebar,
+          content: refs.previewContent
+        };
+        Object.values(areas).forEach((node) => {
+          node.style.backgroundImage = '';
+          node.style.backgroundSize = '';
+          node.style.backgroundPosition = '';
+          node.style.backgroundRepeat = '';
+        });
+        if (!state.background.source || state.background.target === 'none') return;
+        const target = areas[state.background.target];
+        if (!target) return;
+        target.style.backgroundImage = `url(${state.background.source})`;
+        target.style.backgroundSize = state.background.size;
+        target.style.backgroundPosition = state.background.position;
+        target.style.backgroundRepeat = state.background.repeat;
+      }
+
+      function generateCss() {
+        const date = new Date().toLocaleDateString('pt-BR');
+        const targetMap = { header: '.header', sidebar: '.sidebar', content: '.container__content', launcher: '.hydra-html-preview', none: '' };
+        const bgRule = state.background.source && state.background.target !== 'none' ? `\n${targetMap[state.background.target]} {\n  background-image: url('${state.background.source}');\n  background-size: ${state.background.size};\n  background-position: ${state.background.position};\n  background-repeat: ${state.background.repeat};\n}` : '';
+        return `/*\n  Tema: ${state.themeName}\n  Autor: ${state.nickname}\n  Criado com Hydra Theme Studio\n  Data: ${date}\n  https://docs.hydralauncher.gg/themes.html\n*/\n:root {\n  --primary-color: ${state.colors.primary};\n  --background-color: ${state.colors.background};\n  --header-background-color: ${alpha(state.colors.header, state.opacity.header)};\n  --sidebar-background-color: ${alpha(state.colors.sidebar, state.opacity.sidebar)};\n  --content-background-color: ${alpha(state.colors.content, state.opacity.content)};\n  --bottom-panel-background-color: ${alpha(state.colors.bottom, state.opacity.bottom)};\n  --text-color: ${state.colors.text};\n  --text-on-button-color: ${state.colors.textOnButton};\n  --font-family: '${state.typography.fontFamily}', sans-serif;\n  --font-size: ${state.typography.fontSize}px;\n  --font-weight: ${state.typography.fontWeight};\n  --line-height: ${state.typography.lineHeight};\n  --border-radius: ${state.effects.borderRadius}px;\n  --shadow-color: ${state.effects.shadowColor};\n  --shadow-intensity: ${state.effects.shadowIntensity};\n  --blur-intensity: ${state.effects.blurIntensity}px;\n}\n\n.header, .sidebar, .container__content, .bottom-panel, .button, .toast {\n  color: var(--text-color);\n  font-family: var(--font-family);\n}\n\n.header { background: var(--header-background-color); border-radius: var(--border-radius); backdrop-filter: blur(var(--blur-intensity)); }\n.sidebar { background: var(--sidebar-background-color); border-radius: var(--border-radius); backdrop-filter: blur(var(--blur-intensity)); }\n.container__content { background: var(--content-background-color); border-radius: var(--border-radius); backdrop-filter: blur(var(--blur-intensity)); }\n.bottom-panel { background: var(--bottom-panel-background-color); border-radius: var(--border-radius); backdrop-filter: blur(var(--blur-intensity)); }\n.button { background: var(--primary-color); color: var(--text-on-button-color); border-radius: calc(var(--border-radius) - 4px); }\n.toast { border-radius: calc(var(--border-radius) - 2px); }${bgRule}\n\n${debouncedAdvancedCss}`;
+      }
+
+      function render() {
+        document.body.classList.toggle('light', state.editorMode === 'light');
+        refs.previewShell.classList.add('hydra-html-preview');
+        refs.previewShell.style.backgroundColor = state.colors.background;
+        refs.hydraPreview.style.setProperty('--hydra-primary', state.colors.primary);
+        refs.hydraPreview.style.setProperty('--hydra-text', state.colors.text);
+        refs.hydraPreview.style.setProperty('--hydra-text-on-button', state.colors.textOnButton);
+        refs.hydraPreview.style.setProperty('--hydra-header', alpha(state.colors.header, state.opacity.header));
+        refs.hydraPreview.style.setProperty('--hydra-sidebar', alpha(state.colors.sidebar, state.opacity.sidebar));
+        refs.hydraPreview.style.setProperty('--hydra-content', alpha(state.colors.content, state.opacity.content));
+        refs.hydraPreview.style.setProperty('--hydra-bottom', alpha(state.colors.bottom, state.opacity.bottom));
+        refs.hydraPreview.style.setProperty('--hydra-radius', `${state.effects.borderRadius}px`);
+        refs.hydraPreview.style.setProperty('--hydra-blur', `${state.effects.blurIntensity}px`);
+        refs.hydraPreview.style.setProperty('--hydra-font-size', `${state.typography.fontSize}px`);
+        refs.hydraPreview.style.setProperty('--hydra-font-weight', state.typography.fontWeight);
+        refs.hydraPreview.style.setProperty('--hydra-line-height', state.typography.lineHeight);
+        refs.hydraPreview.style.fontFamily = state.typography.fontFamily;
+        refs.previewThemeName.textContent = `Tema: ${state.themeName}`;
+        applyPreviewBackground();
+        refs.cssOutput.value = generateCss();
+        saveState();
+      }
+
+      function download(filename, content, type) {
+        const blob = new Blob([content], { type });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+
+      setupTabs();
+      buildPresets();
+      buildControls();
+      buildGameCards();
+      wireEvents();
+      syncForm();
+      render();
+    </script>
+  </body>
+</html>
